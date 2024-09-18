@@ -1,0 +1,103 @@
+from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.support.ui import Select
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import time
+
+THIS_YEAR = 2021
+STOCK_AVERAGE = 6
+DIFF_FOR_STOCK_FOR_THE_FIRST_DATE = 5
+CURR_VALUE_STOCK = 8
+
+
+def file_name():
+    file = input("Please enter the file name: ")
+    return file
+
+
+def stock_names():
+    stocks = input("Please enter your stocks names: ")
+    stocks_list = stocks.split()
+    return stocks_list
+
+
+def number_years():
+    years = input("Please enter the number of years for the annual average calculation: ")
+    return years
+
+
+def curr_year(number_years_var, counter_years):
+    return THIS_YEAR - int(number_years_var) + counter_years
+
+
+def google_click(stock, driver):
+    # write the name of the stock we are looking for and press enter
+    clicker = driver.find_element_by_class_name('gLFyf')
+    clicker.send_keys(stock + ' historical data ' + 'investing')
+    clicker.send_keys('\n')
+
+
+def investing_website_click(driver):
+    # click on the investing historical data of the stock
+    investing = WebDriverWait(driver, 1000).until(EC.element_to_be_clickable((By.CLASS_NAME, 'TbwUpd')))
+    investing.click()
+
+
+def selecting_sorting_method(driver):
+    # choose to show the data in months
+    checker = WebDriverWait(driver, 1000).until(EC.visibility_of_element_located((By.ID, 'data_interval')))
+    select = Select(driver.find_element_by_id('data_interval'))
+    select.select_by_index(2)
+    driver.implicitly_wait(2)
+
+
+def close_ad(driver, stock):
+    try:
+        driver.implicitly_wait(3)
+        close = driver.find_element_by_id('closeText')
+        close.click()
+    except NoSuchElementException:
+        print('dont need to remove the ad for the work ' + '<' + str(stock) + '>')
+
+
+def change_dates_click(driver):
+    # click to change the dates
+    dates = WebDriverWait(driver, 1000).until(EC.element_to_be_clickable((By.ID, 'widgetFieldDateRange')))
+    dates.click()
+
+
+def change_start_year(driver, curr_year_var):
+    # change the start year for the request of the user
+    start_year = '01/01/' + str(curr_year_var)
+    start_date = WebDriverWait(driver, 1000).until(EC.visibility_of_element_located((By.ID, 'startDate')))
+    start_date.clear()
+    start_date.send_keys(start_year)
+
+
+def change_end_year(driver, curr_year_var):
+    end_year = '01/01/' + str(curr_year_var + 1)
+    end_date = WebDriverWait(driver, 1000).until(EC.visibility_of_element_located((By.ID, 'endDate')))
+    end_date.clear()
+    end_date.send_keys(end_year)
+
+
+def choose_button_click(driver):
+    # press the choose button to accept the new date
+    choose = WebDriverWait(driver, 1000).until(EC.element_to_be_clickable((By.ID, 'applyBtn')))
+    choose.click()
+    time.sleep(1)
+
+
+def get_table_data(col, table_list):
+    for organ in col:
+        table_list.append(organ.text)
+
+
+def check_legal_dates(table_list, stock):
+    if len(table_list) == 1:
+        return -1
+
+
+def calculate_year_yield_percent(first_num, second_num):
+    return ((first_num-second_num)/second_num) * 100
